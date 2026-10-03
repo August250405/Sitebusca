@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LocalLeads — Estabelecimentos sem Site</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#070a10; --panel:#0e141f; --panel-2:#131b28; --border:#1d2735; --border-2:#27364a;
+  --text:#e8eefb; --muted:#8698b4; --accent:#4d8dff; --green:#2fd08a; --amber:#f5b544;
+  --red:#ff5c6c; --purple:#a97bff; --cyan:#3fd0d4; --radius:14px;
+}
+html,body{height:100%}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:radial-gradient(1100px 520px at 12% -8%, rgba(77,141,255,.13) 0%, transparent 62%),
+             radial-gradient(900px 480px at 96% 4%, rgba(169,123,255,.09) 0%, transparent 58%),
+             var(--bg);
+  color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#1d2735;border-radius:8px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:#2a3a52}
+
+.app{display:grid;grid-template-columns:252px 1fr;min-height:100vh}
+
+/* ---------- SIDEBAR ---------- */
+.sidebar{
+  background:linear-gradient(180deg,#0c121c 0%,#080c13 100%);
+  border-right:1px solid var(--border);display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;padding:20px 14px 16px;z-index:40;
+}
+.brand{display:flex;align-items:center;gap:11px;padding:0 8px 20px;border-bottom:1px solid var(--border);margin-bottom:18px}
+.brand .logo{
+  width:38px;height:38px;flex:0 0 38px;border-radius:11px;
+  background:linear-gradient(140deg,#4d8dff,#a97bff);display:grid;place-items:center;
+  font-size:19px;font-weight:800;color:#fff;box-shadow:0 6px 18px rgba(77,141,255,.35);
+}
+.brand h1{font-size:15px;font-weight:700;letter-spacing:-.2px;line-height:1.1}
+.brand span{font-size:10.5px;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;font-weight:600}
+.nav{display:flex;flex-direction:column;gap:3px;flex:1}
+.nav-label{font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:#4d5d75;font-weight:700;padding:14px 10px 7px}
+.nav-item{
+  display:flex;align-items:center;gap:11px;padding:10px 11px;border-radius:10px;
+  background:transparent;border:none;color:var(--muted);font-size:13.2px;font-weight:500;
+  font-family:inherit;cursor:pointer;text-align:left;width:100%;transition:.18s;position:relative;
+}
+.nav-item svg{width:17px;height:17px;flex:0 0 17px;opacity:.85}
+.nav-item:hover{background:#121a27;color:#c8d5ea}
+.nav-item.active{background:linear-gradient(90deg,rgba(77,141,255,.17),rgba(77,141,255,.04));color:#fff;font-weight:600}
+.nav-item.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 4px 4px 0;background:var(--accent)}
+.nav-item .badge{margin-left:auto;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;background:#1e293b;color:#94a8c6}
+.nav-item .badge.green{background:rgba(47,208,138,.16);color:#5ee0aa}
+.nav-item .badge.amber{background:rgba(245,181,68,.16);color:#f8c877}
+.side-foot{border-top:1px solid var(--border);padding-top:14px;margin-top:10px}
+.status-dot{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);padding:4px 10px}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(47,208,138,.6);animation:pulse 2s infinite}
+.pulse.off{background:var(--red);animation:none}
+@keyframes pulse{70%{box-shadow:0 0 0 7px rgba(47,208,138,0)}100%{box-shadow:0 0 0 0 rgba(47,208,138,0)}}
+
+/* ---------- MAIN ---------- */
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;
+  padding:13px 24px;background:rgba(9,13,20,.85);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);flex-wrap:wrap;
+}
+.field{position:relative;display:flex;align-items:center}
+.field .ico{position:absolute;left:12px;width:15px;height:15px;color:#607692;pointer-events:none}
+.topbar input[type=text]{
+  height:40px;padding:0 13px;background:var(--panel);border:1px solid var(--border-2);
+  border-radius:10px;color:var(--text);font-size:13.2px;font-family:inherit;outline:none;transition:.2s;
+}
+.topbar input[type=text]:focus{border-color:rgba(77,141,255,.6);background:#111a27;box-shadow:0 0 0 3px rgba(77,141,255,.09)}
+#locInput{padding-left:36px;min-width:230px;flex:1;max-width:320px}
+.topbar select{
+  height:40px;padding:0 32px 0 12px;background:var(--panel) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238698b4' stroke-width='2.5'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 11px center;
+  border:1px solid var(--border-2);border-radius:10px;color:#c8d5ea;font-size:12.8px;
+  font-family:inherit;appearance:none;cursor:pointer;outline:none;transition:.2s;max-width:230px;
+}
+.topbar select:hover{border-color:#33465e}
+.topbar select:focus{border-color:rgba(77,141,255,.6);box-shadow:0 0 0 3px rgba(77,141,255,.09)}
+.btn{
+  height:40px;padding:0 18px;border-radius:10px;background:linear-gradient(135deg,#4d8dff,#3a6fe0);
+  border:none;color:#fff;font-size:13.2px;font-weight:650;font-family:inherit;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;transition:.18s;white-space:nowrap;
+}
+.btn:hover{filter:brightness(1.1)}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.55;cursor:wait}
+.btn.ghost{background:var(--panel);border:1px solid var(--border-2);color:#b8c7dd}
+.btn.ghost:hover{background:#16202e;color:#fff;border-color:#33465e}
+.btn svg{width:15px;height:15px}
+.top-actions{display:flex;gap:8px;margin-left:auto;align-items:center}
+.icon-btn{
+  width:40px;height:40px;border-radius:10px;background:var(--panel);border:1px solid var(--border-2);
+  color:#b8c7dd;cursor:pointer;display:grid;place-items:center;transition:.18s;
+}
+.icon-btn:hover{background:#16202e;color:#fff}
+.icon-btn svg{width:17px;height:17px}
+
+/* ---------- VIEWS ---------- */
+.views{padding:22px 24px 60px;flex:1}
+.view{display:none;animation:fade .35s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.page-head h2{font-size:21px;font-weight:700;letter-spacing:-.4px}
+.page-head p{font-size:12.8px;color:var(--muted);margin-top:4px}
+.page-head .meta{font-size:11.6px;color:#647a99;text-align:right;line-height:1.6}
+.page-head .meta b{color:#8fa4c2;font-weight:600}
+
+/* ---------- KPI ---------- */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:13px;margin-bottom:18px}
+.kpi{
+  background:linear-gradient(160deg,var(--panel-2),var(--panel));
+  border:1px solid var(--border);border-radius:var(--radius);padding:16px 17px;
+  position:relative;overflow:hidden;transition:.22s;
+}
+.kpi:hover{border-color:#2b3d55;transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.32)}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--kc,var(--accent));opacity:.75}
+.kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);font-weight:650}
+.kpi-ico{width:29px;height:29px;border-radius:8px;display:grid;place-items:center;background:rgba(255,255,255,.04)}
+.kpi-ico svg{width:15px;height:15px}
+.kpi-val{font-size:27px;font-weight:750;letter-spacing:-1px;line-height:1;font-variant-numeric:tabular-nums}
+.kpi-sub{font-size:11.4px;color:#647a99;margin-top:8px;display:flex;align-items:center;gap:5px}
+.kpi-sub b{font-weight:700}
+
+/* ---------- CARDS ---------- */
+.card{
+  background:linear-gradient(170deg,var(--panel-2),var(--panel));
+  border:1px solid var(--border);border-radius:var(--radius);padding:18px 19px;margin-bottom:16px;
+}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.card-title{font-size:13.6px;font-weight:670;letter-spacing:-.1px;display:flex;align-items:center;gap:9px}
+.card-title .dot{width:8px;height:8px;border-radius:3px;background:var(--accent)}
+.card-sub{font-size:11.4px;color:var(--muted);font-weight:400}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-32{display:grid;grid-template-columns:1.25fr .75fr;gap:16px}
+.chart-box{position:relative;width:100%}
+canvas{display:block;width:100%}
+
+/* ---------- DONUT ---------- */
+.donut-wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.donut-canvas{flex:0 0 210px;height:210px;position:relative}
+.status-list{flex:1;min-width:190px;display:flex;flex-direction:column;gap:2px;max-height:230px;overflow-y:auto;padding-right:4px}
+.status-row{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:9px;font-size:12.4px;transition:.15s}
+.status-row:hover{background:#16202e}
+.status-row i{width:9px;height:9px;border-radius:3px;flex:0 0 9px}
+.status-row .lbl{color:#b8c7dd;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status-row .val{font-weight:700;font-variant-numeric:tabular-nums;color:#e8eefb}
+.status-row .pct{font-size:11px;color:#647a99;width:46px;text-align:right;font-variant-numeric:tabular-nums}
+
+/* ---------- TABLE ---------- */
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.filters input[type=text]{
+  height:38px;min-width:230px;flex:1;max-width:340px;padding:0 13px;
+  background:var(--panel);border:1px solid var(--border-2);border-radius:10px;
+  color:var(--text);font-size:12.8px;font-family:inherit;outline:none;transition:.2s;
+}
+.filters input[type=text]:focus{border-color:rgba(77,141,255,.6);box-shadow:0 0 0 3px rgba(77,141,255,.09)}
+.filters select{
+  height:38px;padding:0 32px 0 12px;background:var(--panel) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238698b4' stroke-width='2.5'><path d='m6 9 6 6 6-6'/></svg>") no-repeat right 11px center;
+  border:1px solid var(--border-2);border-radius:10px;color:#b8c7dd;font-size:12.6px;
+  font-family:inherit;appearance:none;cursor:pointer;outline:none;transition:.2s;
+}
+.filters select:hover{border-color:#33465e}
+.filters .spacer{flex:1}
+.table-wrap{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--panel)}
+.table-scroll{max-height:600px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12.6px}
+thead th{
+  position:sticky;top:0;z-index:5;background:#121a26;text-align:left;padding:11px 14px;
+  font-size:10.6px;text-transform:uppercase;letter-spacing:.7px;color:#647a99;font-weight:700;
+  border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;transition:.15s;
+}
+thead th:hover{color:#a9bcd8;background:#16202e}
+thead th .arrow{opacity:.35;margin-left:5px;font-size:9px}
+thead th.sorted .arrow{opacity:1;color:var(--accent)}
+tbody td{padding:11px 14px;border-bottom:1px solid #131b26;color:#b8c7dd;vertical-align:middle}
+tbody tr{transition:.14s}
+tbody tr:hover{background:#131d2b}
+tbody tr:last-child td{border-bottom:none}
+td.name{font-weight:600;color:#e8eefb;max-width:260px}
+td.name .sub{font-size:11px;color:#647a99;font-weight:400;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td.addr{max-width:280px;font-size:12px;color:#a3b5cf}
+td.addr .l1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td.addr .l2{font-size:11px;color:#647a99;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phone{color:#5ee0aa;font-weight:600;font-variant-numeric:tabular-nums;font-size:12.2px}
+.phone.empty{color:#4d5d75;font-weight:400}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;padding:3.5px 9px;border-radius:20px;
+  font-size:11px;font-weight:650;white-space:nowrap;
+}
+.chip i{width:6px;height:6px;border-radius:50%;background:currentColor}
+.num{font-variant-numeric:tabular-nums;text-align:right}
+.pager{display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid var(--border);background:#101825;font-size:12.2px;color:var(--muted);flex-wrap:wrap}
+.pager button{height:31px;min-width:31px;padding:0 10px;border-radius:8px;background:var(--panel-2);border:1px solid var(--border-2);color:#b8c7dd;font-size:12px;font-family:inherit;cursor:pointer;transition:.15s;font-weight:600}
+.pager button:hover:not(:disabled){background:#1c2839;color:#fff}
+.pager button:disabled{opacity:.35;cursor:not-allowed}
+.pager .pages{display:flex;gap:5px}
+.pager .pages button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* ---------- GAUGE ---------- */
+.gauge-box{height:172px;position:relative}
+.gauge-center{position:absolute;left:0;right:0;top:56%;text-align:center;pointer-events:none}
+.gauge-center .g-val{font-size:31px;font-weight:750;letter-spacing:-1.4px;font-variant-numeric:tabular-nums}
+.gauge-center .g-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:650;margin-top:3px}
+
+/* ---------- OPORTUNIDADES ---------- */
+.lead{
+  display:flex;gap:16px;padding:16px 18px;border-radius:12px;margin-bottom:12px;
+  background:linear-gradient(160deg,var(--panel-2),var(--panel));
+  border:1px solid var(--border);border-left:3px solid var(--green);transition:.2s;
+}
+.lead:hover{border-color:#2b3d55;border-left-color:var(--green);transform:translateX(3px)}
+.lead .rank{
+  width:38px;height:38px;flex:0 0 38px;border-radius:10px;
+  background:linear-gradient(135deg,#2fd08a,#1fa76e);display:grid;place-items:center;
+  font-weight:750;font-size:14px;color:#fff;
+}
+.lead .body{flex:1;min-width:0}
+.lead h4{font-size:14.5px;font-weight:680;margin-bottom:4px;color:#e8eefb}
+.lead .addr{font-size:12.2px;color:#8698b4;margin-bottom:8px}
+.lead .row{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:#b8c7dd}
+.lead .row .it{display:flex;align-items:center;gap:6px}
+.lead .row .it svg{width:13px;height:13px;color:#647a99}
+.lead .row .it.phone{color:#5ee0aa;font-weight:650}
+.lead .actions{display:flex;gap:8px;align-items:center;flex:0 0 auto}
+.lead .score{
+  font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;
+  background:rgba(47,208,138,.14);color:#5ee0aa;text-transform:uppercase;letter-spacing:.5px;
+}
+
+/* ---------- EMPTY / LOADING ---------- */
+.empty{padding:56px 20px;text-align:center;color:#647a99;font-size:13px}
+.empty svg{width:42px;height:42px;opacity:.35;margin-bottom:14px}
+.empty h3{color:#a3b5cf;font-size:15px;font-weight:650;margin-bottom:6px}
+.empty p{max-width:400px;margin:0 auto;line-height:1.6}
+
+.loader{
+  display:inline-block;width:16px;height:16px;border-radius:50%;
+  border:2.5px solid rgba(255,255,255,.25);border-top-color:#fff;animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- TOOLTIP ---------- */
+.tooltip{
+  position:fixed;z-index:999;pointer-events:none;
+  background:rgba(16,23,34,.97);border:1px solid #2b3d55;border-radius:10px;
+  padding:9px 12px;font-size:12px;color:#dbe6f7;box-shadow:0 12px 32px rgba(0,0,0,.5);
+  opacity:0;transition:opacity .13s;backdrop-filter:blur(8px);min-width:130px;
+}
+.tooltip b{font-weight:700}
+.tooltip .tr{display:flex;align-items:center;gap:8px;margin-top:5px;font-size:11.6px;color:var(--muted)}
+.tooltip .tr b{margin-left:auto;color:#e8eefb;font-variant-numeric:tabular-nums}
+.tooltip .dot{width:8px;height:8px;border-radius:3px;flex:0 0 8px}
+
+/* ---------- TOAST ---------- */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+  background:#1a2433;border:1px solid #33465e;border-left:3px solid var(--red);
+  border-radius:12px;padding:12px 18px;color:#e8eefb;font-size:13px;
+  box-shadow:0 12px 32px rgba(0,0,0,.5);z-index:300;opacity:0;
+  transition:.3s;max-width:min(520px,90vw);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-left-color:var(--green)}
+.toast b{color:#fff}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:1100px){.grid-32{grid-template-columns:1fr}}
+@media (max-width:980px){
+  .app{grid-template-columns:1fr}
+  .sidebar{
+    position:sticky;top:0;height:auto;flex-direction:row;align-items:center;
+    padding:10px 14px;gap:14px;overflow-x:auto;border-right:none;border-bottom:1px solid var(--border);
+  }
+  .brand{border:none;padding:0;margin:0;flex:0 0 auto}
+  .brand .logo{width:32px;height:32px;flex:0 0 32px;font-size:16px}
+  .brand div{display:none}
+  .nav{flex-direction:row;gap:4px;flex:1}
+  .nav-label,.side-foot{display:none}
+  .nav-item{white-space:nowrap;padding:8px 12px;font-size:12.4px}
+  .nav-item.active::before{display:none}
+  .grid-2{grid-template-columns:1fr}
+  .views{padding:18px 14px 50px}
+  .topbar{padding:11px 14px}
+  #locInput{max-width:none;flex:1 1 100%}
+}
+@media (max-width:640px){
+  .kpi-row{grid-template-columns:1fr 1fr}
+  .kpi-val{font-size:22px}
+  .donut-canvas{flex:0 0 100%;height:190px}
+  .top-actions{width:100%;margin-left:0}
+  .lead{flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">◉</div>
+      <div>
+        <h1>LocalLeads</h1>
+        <span>Sem site · Proxy seguro</span>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="nav-item active" data-view="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span class="txt">Visão Geral</span>
+      </button>
+      <button class="nav-item" data-view="establishments">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h9"/></svg>
+        <span class="txt">Estabelecimentos</span>
+        <span class="badge green" id="badgeTotal">0</span>
+      </button>
+      <button class="nav-item" data-view="opportunities">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4Z"/><path d="m9 12 2 2 4-4"/></svg>
+        <span class="txt">Oportunidades</span>
+        <span class="badge amber" id="badgeLeads">0</span>
+      </button>
+    </nav>
+    <div class="side-foot">
+      <div class="status-dot"><span class="pulse off" id="apiPulse"></span> <span id="apiStatus">Conectando ao servidor…</span></div>
+      <div class="status-dot" style="padding-left:19px" id="lastRun">Aguardando busca…</div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <header class="topbar">
+      <div class="field" style="flex:1;min-width:230px;max-width:320px">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-6.5-7-12a7 7 0 1 1 14 0c0 5.5-7 12-7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        <input type="text" id="locInput" placeholder="Cidade, bairro ou endereço…" value="São Paulo, SP">
+      </div>
+      <select id="catSelect" title="Categoria"></select>
+      <select id="radiusSelect" title="Raio de busca">
+        <option value="2000">Raio 2 km</option>
+        <option value="5000" selected>Raio 5 km</option>
+        <option value="10000">Raio 10 km</option>
+        <option value="25000">Raio 25 km</option>
+        <option value="50000">Raio 50 km</option>
+      </select>
+      <button class="btn" id="searchBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+        Buscar
+      </button>
+      <div class="top-actions">
+        <button class="icon-btn" id="exportBtn" title="Exportar CSV">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        </button>
+        <button class="icon-btn" id="sessionBtn" title="Status da sessão">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4Z"/><path d="m9 12 2 2 4-4"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="views">
+      <!-- ===== OVERVIEW ===== -->
+      <section class="view active" id="view-overview">
+        <div class="page-head">
+          <div>
+            <h2>Visão Geral</h2>
+            <p>Estabelecimentos <b style="color:#5ee0aa">sem site</b> encontrados na sua região.</p>
+          </div>
+          <div class="meta" id="overviewMeta"></div>
+        </div>
+        <div class="kpi-row" id="kpiRow"></div>
+
+        <div class="grid-32">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title"><span class="dot" style="background:var(--purple)"></span> Top cidades / bairros</div>
+            </div>
+            <div class="chart-box" id="cityBarsBox"><canvas id="cityBars"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title"><span class="dot" style="background:var(--green)"></span> Contatabilidade</div>
+            </div>
+            <div class="gauge-box">
+              <canvas id="gaugeChart"></canvas>
+              <div class="gauge-center">
+                <div class="g-val" id="gaugeVal">0%</div>
+                <div class="g-lbl">Com telefone</div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11.6px;color:var(--muted);margin-top:8px;padding:0 6px">
+              <span>0%</span><span>50%</span><span>100%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title"><span class="dot" style="background:var(--accent)"></span> Distribuição por categoria</div>
+            </div>
+            <div class="donut-wrap">
+              <div class="donut-canvas"><canvas id="donutChart"></canvas></div>
+              <div class="status-list" id="statusList"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title"><span class="dot" style="background:var(--amber)"></span> Top subcategorias</div>
+            </div>
+            <div class="chart-box" id="subBarsBox"><canvas id="subBars"></canvas></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== ESTABELECIMENTOS ===== -->
+      <section class="view" id="view-establishments">
+        <div class="page-head">
+          <div>
+            <h2>Estabelecimentos sem Site</h2>
+            <p>Todos os negócios retornados que <b>não possuem</b> campo de website.</p>
+          </div>
+          <div class="meta" id="estMeta"></div>
+        </div>
+        <div class="card">
+          <div class="filters">
+            <input type="text" id="tableSearch" placeholder="Filtrar por nome, endereço ou categoria…">
+            <select id="tableCatFilter"><option value="all">Todas as categorias</option></select>
+            <select id="tablePhoneFilter">
+              <option value="all">Todos</option>
+              <option value="yes">Somente com telefone</option>
+              <option value="no">Somente sem telefone</option>
+            </select>
+            <select id="perPageSel">
+              <option value="15">15 por página</option>
+              <option value="25" selected>25 por página</option>
+              <option value="50">50 por página</option>
+              <option value="100">100 por página</option>
+            </select>
+            <div class="spacer"></div>
+            <span style="font-size:12px;color:var(--muted)" id="tableCount"></span>
+          </div>
+          <div class="table-wrap">
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th data-sort="name">Nome <span class="arrow">▼</span></th>
+                    <th data-sort="address">Endereço <span class="arrow">▼</span></th>
+                    <th data-sort="phone" style="width:150px">Telefone <span class="arrow">▼</span></th>
+                    <th data-sort="category" style="width:160px">Categoria <span class="arrow">▼</span></th>
+                    <th data-sort="distance" style="width:110px;text-align:right">Distância <span class="arrow">▼</span></th>
+                  </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+              </table>
+            </div>
+            <div class="pager" id="pager"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== OPORTUNIDADES ===== -->
+      <section class="view" id="view-opportunities">
+        <div class="page-head">
+          <div>
+            <h2>Oportunidades Prioritárias</h2>
+            <p>Estabelecimentos sem site <b>com telefone</b> — leads prontos para contato comercial.</p>
+          </div>
+          <div class="meta" id="oppMeta"></div>
+        </div>
+        <div id="oppList"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   UTILS
+   ========================================================= */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+
+const nfInt = new Intl.NumberFormat('pt-BR');
+const nfDec = new Intl.NumberFormat('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
+const fmtInt = v => nfInt.format(Math.round(v||0));
+const fmtPct = v => nfDec.format((v||0)*100) + '%';
+const fmtDist = m => m < 1000 ? Math.round(m) + ' m' : nfDec.format(m/1000) + ' km';
+
+function hexA(hex, a){
+  const al = Math.round(a*255).toString(16).padStart(2,'0');
+  return hex + al;
+}
+function showToast(msg, type='error'){
+  const t = $('#toast');
+  t.innerHTML = msg;
+  t.className = 'toast show ' + (type === 'success' ? 'success' : '');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 4200);
+}
+
+/* =========================================================
+   CATEGORIAS
+   ========================================================= */
+const CATEGORIES = [
+  { g:'Alimentação', items:[
+    { id:'catering', label:'Restaurantes, bares e cafés' },
+    { id:'catering.restaurant', label:'Restaurantes' },
+    { id:'catering.cafe', label:'Cafeterias' },
+    { id:'catering.bar', label:'Bares e pubs' },
+    { id:'catering.fast_food', label:'Fast food / Lanchonetes' },
+  ]},
+  { g:'Beleza & Bem-estar', items:[
+    { id:'service.beauty', label:'Salões e barbearias' },
+    { id:'sport.fitness', label:'Academias' },
+    { id:'commercial.health_and_beauty', label:'Cosméticos e estética' },
+  ]},
+  { g:'Saúde', items:[
+    { id:'healthcare', label:'Saúde (geral)' },
+    { id:'healthcare.dentist', label:'Dentistas' },
+    { id:'healthcare.veterinary', label:'Veterinárias' },
+    { id:'healthcare.pharmacy', label:'Farmácias' },
+  ]},
+  { g:'Comércio', items:[
+    { id:'commercial', label:'Comércio (geral)' },
+    { id:'commercial.clothing', label:'Moda e vestuário' },
+    { id:'commercial.pet', label:'Pet shops' },
+    { id:'commercial.supermarket', label:'Supermercados' },
+    { id:'commercial.electronics', label:'Eletrônicos' },
+  ]},
+  { g:'Serviços', items:[
+    { id:'service', label:'Serviços (geral)' },
+    { id:'service.vehicle', label:'Automotivo / Oficinas' },
+    { id:'service.financial', label:'Financeiro e seguros' },
+    { id:'service.estate_agent', label:'Imobiliárias' },
+  ]},
+  { g:'Outros', items:[
+    { id:'accommodation', label:'Hotéis e pousadas' },
+    { id:'entertainment', label:'Entretenimento' },
+    { id:'education', label:'Educação' },
+  ]},
+];
+
+const CAT_LABELS = {
+  'catering':'Alimentação','catering.restaurant':'Restaurante','catering.cafe':'Cafeteria',
+  'catering.bar':'Bar','catering.pub':'Pub','catering.fast_food':'Fast food',
+  'catering.ice_cream':'Sorveteria','catering.biergarten':'Biergarten',
+  'service':'Serviços','service.beauty':'Salão de beleza','service.hairdresser':'Cabeleireiro',
+  'service.vehicle':'Automotivo','service.vehicle.repair':'Oficina','service.vehicle.car_wash':'Lava-rápido',
+  'service.financial':'Financeiro','service.financial.bank':'Banco','service.financial.insurance':'Seguros',
+  'service.estate_agent':'Imobiliária','service.lawyer':'Advogado','service.it':'TI / Tecnologia',
+  'service.tailor':'Alfaiate','service.dry_cleaning':'Lavanderia','service.laundry':'Lavanderia',
+  'service.cleaning':'Limpeza','service.travel_agency':'Agência de viagens',
+  'service.employment_agency':'Agência de empregos','service.architect':'Arquiteto',
+  'healthcare':'Saúde','healthcare.dentist':'Dentista','healthcare.doctor':'Médico',
+  'healthcare.pharmacy':'Farmácia','healthcare.veterinary':'Veterinária',
+  'healthcare.physiotherapist':'Fisioterapeuta','healthcare.psychotherapist':'Psicólogo',
+  'healthcare.optometrist':'Ótica','healthcare.hospital':'Hospital','healthcare.clinic':'Clínica',
+  'sport.fitness':'Academia','sport.sports_centre':'Centro esportivo','sport.golf':'Golfe',
+  'commercial':'Comércio','commercial.supermarket':'Supermercado','commercial.convenience':'Conveniência',
+  'commercial.clothing':'Moda','commercial.florist':'Floricultura','commercial.gift':'Presentes',
+  'commercial.books':'Livraria','commercial.electronics':'Eletrônicos','commercial.furniture':'Móveis',
+  'commercial.jewelry':'Joalheria','commercial.medical_supply':'Material médico',
+  'commercial.health_and_beauty':'Beleza e saúde','commercial.pet':'Pet shop',
+  'commercial.shopping_mall':'Shopping','commercial.car':'Concessionária',
+  'commercial.car_parts':'Autopeças','commercial.bicycle':'Bicicletaria',
+  'accommodation':'Hospedagem','accommodation.hotel':'Hotel','accommodation.hostel':'Hostel',
+  'accommodation.guest_house':'Pousada','accommodation.motel':'Motel',
+  'entertainment':'Entretenimento','entertainment.cinema':'Cinema','entertainment.theatre':'Teatro',
+  'education':'Educação','education.language_school':'Idiomas','education.driving_school':'Autoescola',
+  'education.school':'Escola','education.university':'Universidade',
+  'tourism':'Turismo','tourism.attraction':'Atração turística','tourism.sights':'Ponto turístico',
+  'public_transport':'Transporte','parking':'Estacionamento',
+};
+
+const CHART_COLORS = ['#4d8dff','#a97bff','#2fd08a','#f5b544','#ff5c6c','#3fd0d4','#ff9f45','#7fd45a','#e0407a','#5ee0aa','#8fb6ff','#c9a0ff'];
+
+function catLabel(cat){
+  if(!cat) return 'Outros';
+  if(CAT_LABELS[cat]) return CAT_LABELS[cat];
+  const parts = cat.split('.');
+  for(let i=parts.length-1;i>0;i--){
+    const k = parts.slice(0,i).join('.');
+    if(CAT_LABELS[k]) return CAT_LABELS[k];
+  }
+  return parts[parts.length-1].replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+}
+function topLevel(cat){
+  if(!cat) return 'outros';
+  return cat.split('.')[0];
+}
+
+/* =========================================================
+   ESTADO
+   ========================================================= */
+const state = {
+  authToken: null,
+  tokenExp: 0,
+  center: null,
+  results: [],
+  truncated: false,
+  query: null,
+  view: 'overview',
+  table: { q:'', cat:'all', phone:'all', sort:'distance', dir:1, page:1, perPage:25 }
+};
+
+/* =========================================================
+   TRANSPORTE SEGURO (via proxy)
+   ========================================================= */
+let tokenRefreshPromise = null;
+
+async function refreshToken(){
+  if(tokenRefreshPromise) return tokenRefreshPromise;
+  tokenRefreshPromise = (async () => {
+    try {
+      const r = await fetch('/api/token', {
+        credentials: 'same-origin',
+        cache: 'no-store'
+      });
+      if(!r.ok) throw new Error('HTTP ' + r.status);
+      const d = await r.json();
+      if(!d.token) throw new Error('Token ausente na resposta');
+      state.authToken = d.token;
+      state.tokenExp = Date.now() + (d.ttl || 900000);
+      return state.authToken;
+    } finally {
+      tokenRefreshPromise = null;
+    }
+  })();
+  return tokenRefreshPromise;
+}
+
+async function apiFetch(pathname, params = {}){
+  const url = new URL(pathname, window.location.origin);
+  for(const [k,v] of Object.entries(params)){
+    if(v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
+  }
+
+  const doFetch = async () => {
+    const headers = {};
+    if(state.authToken) headers['X-Auth-Token'] = state.authToken;
+    return fetch(url, { headers, credentials: 'same-origin' });
+  };
+
+  let r = await doFetch();
+
+  /* Token expirado → renova e tenta 1x */
+  if(r.status === 401){
+    await refreshToken();
+    r = await doFetch();
+  }
+
+  const data = await r.json().catch(() => ({}));
+  if(!r.ok){
+    if(r.status === 429){
+      throw new Error(data.error || 'Limite de consultas atingido. Aguarde alguns segundos.');
+    }
+    throw new Error(data.error || `Erro do servidor (HTTP ${r.status})`);
+  }
+  return data;
+}
+
+/* =========================================================
+   API VIA PROXY
+   ========================================================= */
+async function geocode(text){
+  const d = await apiFetch('/api/geocode', { text, limit: 1 });
+  if(!d.features || !d.features.length){
+    throw new Error('Localização não encontrada: "' + text + '"');
+  }
+  const p = d.features[0].properties;
+  return {
+    lat: p.lat,
+    lon: p.lon,
+    formatted: p.formatted || text,
+    city: p.city,
+    state: p.state,
+    country: p.country
+  };
+}
+
+async function searchPlaces({ lat, lon, radius, category, limit = 500 }){
+  return apiFetch('/api/places', {
+    categories: category,
+    filter: `circle:${lon},${lat},${radius}`,
+    limit
+  });
+}
+
+/* =========================================================
+   HAVERSINE
+   ========================================================= */
+function haversine(lat1, lon1, lat2, lon2){
+  const R = 6371000;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+
+/* =========================================================
+   PARSE FEATURE
+   ========================================================= */
+function hasWebsite(p){
+  const w = p.website || (p.contact && p.contact.website);
+  return w && String(w).trim() !== '';
+}
+function getPhone(p){
+  const ph = p.phone || (p.contact && p.contact.phone);
+  return ph && String(ph).trim() !== '' ? String(ph).trim() : null;
+}
+function parseFeature(f, center){
+  const p = f.properties || {};
+  const coords = (f.geometry && f.geometry.coordinates) || [0,0];
+  const lon = coords[0], lat = coords[1];
+  const cats = Array.isArray(p.categories) ? p.categories : [];
+  const primary = cats[0] || 'outros';
+  const distance = center ? haversine(center.lat, center.lon, lat, lon) : 0;
+  const addr1 = p.address_line1 || p.street || '';
+  const addr2 = p.address_line2 || [p.city, p.state].filter(Boolean).join(', ') || '';
+  return {
+    id: p.place_id || (lat+','+lon+'-'+Math.random().toString(36).slice(2,7)),
+    name: p.name || p.address_line1 || 'Sem nome',
+    address1: addr1,
+    address2: addr2,
+    city: p.city || p.county || p.district || '',
+    state: p.state || '',
+    postcode: p.postcode || '',
+    country: p.country || '',
+    phone: getPhone(p),
+    categories: cats,
+    primaryCategory: primary,
+    topCategory: topLevel(primary),
+    lat, lon, distance,
+    openingHours: p.opening_hours || null,
+    raw: p
+  };
+}
+
+/* =========================================================
+   FLUXO DE BUSCA
+   ========================================================= */
+async function runSearch(){
+  if(!state.authToken){
+    try { await refreshToken(); }
+    catch(e){ showToast('Sessão não iniciada. Recarregue a página.'); return; }
+  }
+
+  const locationText = $('#locInput').value.trim();
+  if(!locationText){ showToast('Informe uma localização.'); return; }
+
+  const category = $('#catSelect').value;
+  const radius   = +$('#radiusSelect').value;
+
+  const btn = $('#searchBtn');
+  const oldHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loader"></span> Buscando…';
+  $('#apiStatus').textContent = 'Consultando via proxy seguro…';
+
+  try {
+    /* 1. Geocode */
+    const center = await geocode(locationText);
+
+    /* 2. Places */
+    const data = await searchPlaces({
+      lat: center.lat, lon: center.lon, radius, category, limit: 500
+    });
+
+    const allFeatures = data.features || [];
+    const truncated = allFeatures.length >= 500;
+
+    /* 3. FILTRO: somente sem site */
+    const noSite = allFeatures.filter(f => !hasWebsite(f.properties || {}));
+
+    /* 4. Parse */
+    const results = noSite.map(f => parseFeature(f, center));
+    results.sort((a,b) => a.distance - b.distance);
+
+    /* 5. Atualiza estado */
+    state.center    = center;
+    state.results   = results;
+    state.truncated = truncated;
+    state.query     = { location: locationText, category, radius };
+    state.table.page = 1;
+    state.table.q = ''; state.table.cat = 'all'; state.table.phone = 'all';
+    $('#tableSearch').value = '';
+    $('#tableCatFilter').value = 'all';
+    $('#tablePhoneFilter').value = 'all';
+
+    /* 6. Badges + status */
+    const withPhone = results.filter(r => r.phone).length;
+    $('#badgeTotal').textContent = fmtInt(results.length);
+    $('#badgeLeads').textContent = fmtInt(withPhone);
+    $('#apiStatus').textContent  = 'Conectado (proxy seguro)';
+    $('#apiPulse').classList.remove('off');
+    $('#lastRun').textContent    = 'Atualizado ' + new Date().toLocaleTimeString('pt-BR');
+
+    /* 7. Render */
+    switchView(state.view, true);
+
+    if(results.length === 0){
+      showToast('Nenhum estabelecimento <b>sem site</b> encontrado. Tente ampliar o raio ou trocar a categoria.');
+    } else {
+      showToast(`<b>${fmtInt(results.length)}</b> estabelecimentos sem site encontrados (${fmtInt(withPhone)} com telefone).`, 'success');
+    }
+  } catch(err){
+    console.error(err);
+    showToast('<b>Erro:</b> ' + err.message);
+    $('#apiStatus').textContent = 'Falha na última consulta';
+    $('#apiPulse').classList.add('off');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = oldHtml;
+  }
+}
+
+/* =========================================================
+   CANVAS — INFRA
+   ========================================================= */
+let activeCharts = [];
+const tipEl = document.createElement('div');
+tipEl.className = 'tooltip';
+document.body.appendChild(tipEl);
+
+function showTip(html, x, y){
+  tipEl.innerHTML = html;
+  tipEl.style.opacity = '1';
+  const r = tipEl.getBoundingClientRect();
+  let left = x + 16, top = y - r.height - 14;
+  if(left + r.width > innerWidth - 8) left = x - r.width - 16;
+  if(top < 8) top = y + 20;
+  tipEl.style.left = left + 'px';
+  tipEl.style.top = top + 'px';
+}
+function hideTip(){ tipEl.style.opacity = '0'; }
+
+function setupCanvas(canvas){
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  const w = Math.max(rect.width, 1), h = Math.max(rect.height, 1);
+  canvas.width  = Math.round(w*dpr);
+  canvas.height = Math.round(h*dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+  return { ctx, w, h };
+}
+
+/* ---------- DONUT ---------- */
+function makeDonut(canvas, items){
+  let hover = -1, segs = [], geom = null;
+  function draw(){
+    const { ctx, w, h } = setupCanvas(canvas);
+    const cx = w/2, cy = h/2;
+    const R = Math.min(w,h)/2 - 6;
+    const r = R * 0.63;
+    const total = items.reduce((a,b)=>a+b.value,0) || 1;
+
+    let a0 = -Math.PI/2;
+    segs = [];
+    items.forEach((it,i)=>{
+      const ang = (it.value/total)*Math.PI*2;
+      const a1 = a0 + ang;
+      segs.push({start:(a0+Math.PI/2)/(Math.PI*2), end:(a1+Math.PI/2)/(Math.PI*2), it, i});
+
+      const grow = hover===i ? 3.5 : 0;
+      ctx.beginPath();
+      ctx.arc(cx, cy, (R+r)/2 + grow/2, a0, a1);
+      ctx.lineWidth = (R-r) - grow;
+      ctx.strokeStyle = it.color;
+      ctx.globalAlpha = (hover===-1 || hover===i) ? 1 : 0.28;
+      ctx.lineCap = 'butt';
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      a0 = a1;
+    });
+
+    const hv = hover>=0 ? items[hover] : null;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle='#e8eefb'; ctx.font='750 21px Inter,sans-serif';
+    ctx.fillText(fmtInt(hv?hv.value:total), cx, cy-6);
+    ctx.fillStyle='#8698b4'; ctx.font='600 10px Inter,sans-serif';
+    const lbl = hv ? hv.label.toUpperCase() : 'TOTAL';
+    ctx.fillText(lbl.length>20 ? lbl.slice(0,18)+'…' : lbl, cx, cy+14);
+    geom = {cx,cy,R,r};
+  }
+  canvas.addEventListener('mousemove', e=>{
+    if(!geom) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left - geom.cx;
+    const y = e.clientY - rect.top - geom.cy;
+    const dist = Math.hypot(x,y);
+    if(dist < geom.r-3 || dist > geom.R+4){
+      if(hover!==-1){ hover=-1; draw(); }
+      hideTip();
+      return;
+    }
+    let a = Math.atan2(y,x) + Math.PI/2;
+    if(a<0) a += Math.PI*2;
+    const f = a/(Math.PI*2);
+    let found = -1;
+    for(const s of segs){ if(f>=s.start && f<s.end){ found = s.i; break; } }
+    if(found !== hover){ hover = found; draw(); }
+    if(found >= 0){
+      const it = items[found];
+      const total = items.reduce((a,b)=>a+b.value,0)||1;
+      showTip(`<b>${it.label}</b>
+        <div class="tr"><span class="dot" style="background:${it.color}"></span>Estabelecimentos<b>${fmtInt(it.value)}</b></div>
+        <div class="tr"><span class="dot" style="background:${it.color}"></span>Participação<b>${fmtPct(it.value/total)}</b></div>`,
+        e.clientX, e.clientY);
+    }
+  });
+  canvas.addEventListener('mouseleave', ()=>{ hover=-1; draw(); hideTip(); });
+  draw();
+  return { draw };
+}
+
+/* ---------- BARRAS HORIZONTAIS ---------- */
+function makeBars(canvas, items, opts={}){
+  const rowH = opts.rowH || 36;
+  const barH = opts.barH || 9;
+  let hover = -1;
+
+  const box = canvas.parentElement;
+  const needed = items.length * rowH + 12;
+  box.style.height = needed + 'px';
+
+  function draw(){
+    const { ctx, w, h } = setupCanvas(canvas);
+    const labelW = opts.labelW || Math.min(180, w*0.36);
+    const valW = 66;
+    const barX = labelW + 10;
+    const barW = Math.max(20, w - barX - valW - 8);
+    const max = Math.max(...items.map(i=>i.value)) || 1;
+
+    ctx.font = '500 12px Inter,sans-serif';
+
+    items.forEach((it,i)=>{
+      const y = i*rowH + 6;
+      const active = hover===i;
+
+      ctx.fillStyle = active ? '#e8eefb' : '#a3b5cf';
+      ctx.textAlign='right'; ctx.textBaseline='middle';
+      const lbl = it.label.length>24 ? it.label.slice(0,22)+'…' : it.label;
+      ctx.fillText(lbl, labelW, y+barH/2+1);
+
+      ctx.fillStyle = '#161f2c';
+      roundRect(ctx, barX, y, barW, barH, barH/2); ctx.fill();
+
+      const wBar = Math.max(4, barW * (it.value/max));
+      const grad = ctx.createLinearGradient(barX,0,barX+wBar,0);
+      grad.addColorStop(0, hexA(it.color,0.75));
+      grad.addColorStop(1, it.color);
+      ctx.fillStyle = grad;
+      roundRect(ctx, barX, y, wBar, barH, barH/2); ctx.fill();
+
+      ctx.fillStyle = active ? '#fff' : '#dbe6f7';
+      ctx.textAlign='left'; ctx.font='700 12px Inter,sans-serif';
+      ctx.fillText(fmtInt(it.value), barX+barW+10, y+barH/2+1);
+      ctx.font='500 12px Inter,sans-serif';
+    });
+
+    function roundRect(c,x,y,ww,hh,r){
+      r = Math.min(r, hh/2, ww/2);
+      c.beginPath();
+      c.moveTo(x+r,y); c.lineTo(x+ww-r,y);
+      c.quadraticCurveTo(x+ww,y,x+ww,y+r);
+      c.lineTo(x+ww,y+hh-r);
+      c.quadraticCurveTo(x+ww,y+hh,x+ww-r,y+hh);
+      c.lineTo(x+r,y+hh);
+      c.quadraticCurveTo(x,y+hh,x,y+hh-r);
+      c.lineTo(x,y+r);
+      c.quadraticCurveTo(x,y,x+r,y);
+      c.closePath();
+    }
+  }
+
+  canvas.addEventListener('mousemove', e=>{
+    const rect = canvas.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const i = Math.floor((y-6)/rowH);
+    if(i>=0 && i<items.length){
+      if(i !== hover){ hover = i; draw(); }
+      const total = items.reduce((a,b)=>a+b.value,0)||1;
+      showTip(`<b>${items[i].label}</b>
+        <div class="tr"><span class="dot" style="background:${items[i].color}"></span>Estabelecimentos<b>${fmtInt(items[i].value)}</b></div>
+        <div class="tr"><span class="dot" style="background:${items[i].color}"></span>Participação<b>${fmtPct(items[i].value/total)}</b></div>`,
+        e.clientX, e.clientY);
+    } else {
+      if(hover !== -1){ hover = -1; draw(); }
+      hideTip();
+    }
+  });
+  canvas.addEventListener('mouseleave', ()=>{ hover=-1; draw(); hideTip(); });
+  draw();
+  return { draw };
+}
+
+/* ---------- GAUGE ---------- */
+function makeGauge(canvas, value){
+  function draw(){
+    const { ctx, w, h } = setupCanvas(canvas);
+    const cx = w/2, cy = h*0.88;
+    const R = Math.min(w/2 - 12, h*0.8);
+    const lw = 15;
+    const start = Math.PI, end = Math.PI*2;
+
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, start, end);
+    ctx.lineWidth = lw; ctx.strokeStyle = '#18212f'; ctx.stroke();
+
+    for(let i=0;i<=10;i++){
+      const a = start + (end-start)*(i/10);
+      const r1 = R - lw/2 - 6, r2 = R - lw/2 - 10;
+      ctx.beginPath();
+      ctx.moveTo(cx+Math.cos(a)*r1, cy+Math.sin(a)*r1);
+      ctx.lineTo(cx+Math.cos(a)*r2, cy+Math.sin(a)*r2);
+      ctx.strokeStyle = '#233043'; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+
+    const grad = ctx.createLinearGradient(cx-R,0,cx+R,0);
+    grad.addColorStop(0,'#ff5c6c');
+    grad.addColorStop(0.5,'#f5b544');
+    grad.addColorStop(1,'#2fd08a');
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, start, start + (end-start)*Math.max(0.001, value));
+    ctx.lineWidth = lw; ctx.strokeStyle = grad; ctx.stroke();
+
+    const a = start + (end-start)*value;
+    ctx.beginPath();
+    ctx.arc(cx+Math.cos(a)*R, cy+Math.sin(a)*R, 5, 0, Math.PI*2);
+    ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.strokeStyle = '#0b1018'; ctx.lineWidth = 2.5; ctx.stroke();
+  }
+  draw();
+  return { draw };
+}
+
+/* =========================================================
+   RENDER — KPIs
+   ========================================================= */
+const ICONS = {
+  layers:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7 12.8 12.8 0 0 0 .7 2.8 2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4 12.8 12.8 0 0 0 2.8.7 2 2 0 0 1 1.7 2Z"/></svg>',
+  tag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12 22l-9-9V4a1 1 0 0 1 1-1h9l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>',
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.5-7-12a7 7 0 1 1 14 0c0 5.5-7 12-7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg>',
+  target:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>',
+  zap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/></svg>',
+};
+
+function kpiCard(k, idx){
+  return `<div class="kpi" style="--kc:${k.color}">
+    <div class="kpi-top">
+      <span class="kpi-label">${k.label}</span>
+      <span class="kpi-ico" style="color:${k.color}">${k.icon}</span>
+    </div>
+    <div class="kpi-val" data-kpi="${idx}">0</div>
+    <div class="kpi-sub">${k.sub || ''}</div>
+  </div>`;
+}
+function animateKpis(list){
+  list.forEach((k,i)=>{
+    const el = document.querySelector(`[data-kpi="${i}"]`);
+    if(!el) return;
+    const to = k.value;
+    if(!isFinite(to)){ el.textContent = '0'; return; }
+    const dur = 700;
+    const t0 = performance.now();
+    function step(t){
+      const p = Math.min(1, (t-t0)/dur);
+      const e = 1 - Math.pow(1-p, 3);
+      el.textContent = k.format(to * e);
+      if(p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+/* =========================================================
+   RENDER — VISÃO GERAL
+   ========================================================= */
+function renderOverview(){
+  const r = state.results;
+  activeCharts = [];
+
+  if(!state.center){
+    $('#overviewMeta').innerHTML = '';
+    ['cityBarsBox','subBarsBox'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.innerHTML = '';
+    });
+    $('#statusList').innerHTML = '';
+    $('#kpiRow').innerHTML = `<div class="card" style="grid-column:1/-1;margin:0">
+      ${emptyState('Pronto para buscar', 'Digite uma localização, escolha a categoria e o raio, e clique em <b>Buscar</b>. Só aparecerão estabelecimentos <b>sem site</b>.')}
+    </div>`;
+    return;
+  }
+
+  $('#overviewMeta').innerHTML = `<b>${escapeHtml(state.center.formatted)}</b><br>${catLabel(state.query.category)} · raio ${fmtDist(state.query.radius)}`;
+
+  const withPhone = r.filter(x=>x.phone).length;
+  const cityCount = new Set(r.map(x=>x.city).filter(Boolean)).size;
+  const catCount  = new Set(r.map(x=>x.topCategory)).size;
+  const pctPhone  = r.length ? withPhone/r.length : 0;
+
+  const kpis = [
+    { label:'Estabelecimentos sem site', value:r.length, color:'#2fd08a', icon:ICONS.layers,
+      format:fmtInt, sub:`Encontrados em ${fmtDist(state.query.radius)}` },
+    { label:'Com telefone', value:withPhone, color:'#5ee0aa', icon:ICONS.phone,
+      format:fmtInt, sub:`${fmtPct(pctPhone)} do total · contatáveis` },
+    { label:'Sem telefone', value:r.length - withPhone, color:'#f5b544', icon:ICONS.phone,
+      format:fmtInt, sub:'Requerem prospecção presencial' },
+    { label:'Categorias distintas', value:catCount, color:'#a97bff', icon:ICONS.tag,
+      format:fmtInt, sub:'Grupos principais' },
+    { label:'Cidades/bairros', value:cityCount, color:'#4d8dff', icon:ICONS.pin,
+      format:fmtInt, sub:'Regiões cobertas' },
+    { label:'Distância média', value:r.reduce((a,b)=>a+b.distance,0)/(r.length||1), color:'#3fd0d4', icon:ICONS.target,
+      format:v=>fmtDist(v), sub:'Do centro pesquisado' },
+  ];
+  $('#kpiRow').innerHTML = kpis.map(kpiCard).join('');
+  animateKpis(kpis);
+
+  /* Barras — top cidades */
+  const byCity = {};
+  r.forEach(x=>{ const k = x.city || 'Não informado'; byCity[k] = (byCity[k]||0)+1; });
+  const cityItems = Object.entries(byCity)
+    .sort((a,b)=>b[1]-a[1]).slice(0,8)
+    .map(([label,value],i)=>({label, value, color: CHART_COLORS[i % CHART_COLORS.length]}));
+
+  if(cityItems.length){
+    $('#cityBarsBox').innerHTML = '<canvas id="cityBars"></canvas>';
+    activeCharts.push(makeBars($('#cityBars'), cityItems, { rowH:36 }));
+  } else {
+    $('#cityBarsBox').innerHTML = emptyMini('Sem dados de cidade');
+  }
+
+  /* Gauge */
+  activeCharts.push(makeGauge($('#gaugeChart'), pctPhone));
+  $('#gaugeVal').textContent = fmtPct(pctPhone);
+
+  /* Donut — categorias de topo */
+  const byCat = {};
+  r.forEach(x=>{ byCat[x.topCategory] = (byCat[x.topCategory]||0)+1; });
+  const catItems = Object.entries(byCat)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([k,v],i)=>({ key:k, label:catLabel(k), value:v, color: CHART_COLORS[i % CHART_COLORS.length] }));
+
+  if(catItems.length){
+    activeCharts.push(makeDonut($('#donutChart'), catItems));
+    $('#statusList').innerHTML = catItems.map(it=>`
+      <div class="status-row">
+        <i style="background:${it.color}"></i>
+        <span class="lbl">${escapeHtml(it.label)}</span>
+        <span class="val">${fmtInt(it.value)}</span>
+        <span class="pct">${fmtPct(it.value/(r.length||1))}</span>
+      </div>`).join('');
+  } else {
+    $('#statusList').innerHTML = '';
+  }
+
+  /* Barras — subcategorias */
+  const bySub = {};
+  r.forEach(x=>{ const k = x.primaryCategory || 'outros'; bySub[k] = (bySub[k]||0)+1; });
+  const subItems = Object.entries(bySub)
+    .sort((a,b)=>b[1]-a[1]).slice(0,10)
+    .map(([k,v],i)=>({ label:catLabel(k), value:v, color: CHART_COLORS[i % CHART_COLORS.length] }));
+
+  if(subItems.length){
+    $('#subBarsBox').innerHTML = '<canvas id="subBars"></canvas>';
+    activeCharts.push(makeBars($('#subBars'), subItems, { rowH:34 }));
+  } else {
+    $('#subBarsBox').innerHTML = emptyMini('Sem subcategorias');
+  }
+}
+
+/* =========================================================
+   RENDER — ESTABELECIMENTOS
+   ========================================================= */
+function renderEstablishments(){
+  const r = state.results;
+  activeCharts = [];
+
+  if(!state.center){
+    $('#estMeta').innerHTML = '';
+    $('#tableBody').innerHTML = `<tr><td colspan="5">${emptyState('Nenhuma busca realizada', 'Faça uma busca para carregar os estabelecimentos.')}</td></tr>`;
+    $('#pager').innerHTML = '';
+    $('#tableCount').textContent = '';
+    return;
+  }
+
+  $('#estMeta').innerHTML = `<b>${fmtInt(r.length)} estabelecimentos sem site</b><br>${escapeHtml(state.center.formatted)}`;
+
+  /* Popula filtro de categoria */
+  const usedCats = [...new Set(r.map(x=>x.topCategory))].sort();
+  const sel = $('#tableCatFilter');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="all">Todas as categorias</option>' +
+    usedCats.map(c=>`<option value="${c}">${escapeHtml(catLabel(c))}</option>`).join('');
+  if([...sel.options].some(o=>o.value === prev)) sel.value = prev;
+
+  renderTable();
+}
+
+function renderTable(){
+  const r = state.results;
+  const t = state.table;
+
+  let rows = r.filter(x=>{
+    if(t.cat !== 'all' && x.topCategory !== t.cat) return false;
+    if(t.phone === 'yes' && !x.phone) return false;
+    if(t.phone === 'no'  &&  x.phone) return false;
+    if(t.q){
+      const q = t.q.toLowerCase();
+      const hay = (x.name+' '+x.address1+' '+x.address2+' '+x.categories.join(' ')).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  const dir = t.dir;
+  rows.sort((a,b)=>{
+    let va, vb;
+    switch(t.sort){
+      case 'name':     va = a.name.toLowerCase(); vb = b.name.toLowerCase(); break;
+      case 'address':  va = (a.address1+a.address2).toLowerCase(); vb = (b.address1+b.address2).toLowerCase(); break;
+      case 'phone':    va = a.phone||'zzz'; vb = b.phone||'zzz'; break;
+      case 'category': va = a.primaryCategory; vb = b.primaryCategory; break;
+      default:         va = a.distance; vb = b.distance;
+    }
+    if(va < vb) return -1*dir;
+    if(va > vb) return  1*dir;
+    return 0;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / t.perPage));
+  if(t.page > totalPages) t.page = totalPages;
+  const start = (t.page - 1) * t.perPage;
+  const pageRows = rows.slice(start, start + t.perPage);
+
+  $('#tableCount').textContent = `${fmtInt(rows.length)} de ${fmtInt(r.length)}`;
+
+  const tbody = $('#tableBody');
+  if(!pageRows.length){
+    tbody.innerHTML = `<tr><td colspan="5">${emptyState('Sem resultados', 'Nenhum estabelecimento corresponde aos filtros.')}</td></tr>`;
+  } else {
+    tbody.innerHTML = pageRows.map(x=>{
+      const catColor = CHART_COLORS[Math.abs(hashStr(x.topCategory)) % CHART_COLORS.length];
+      return `<tr>
+        <td class="name">
+          ${escapeHtml(x.name)}
+          <div class="sub">${escapeHtml(x.categories.slice(0,2).map(catLabel).join(' · ')) || '—'}</div>
+        </td>
+        <td class="addr">
+          <div class="l1">${escapeHtml(x.address1) || '—'}</div>
+          <div class="l2">${escapeHtml(x.address2) || '—'}</div>
+        </td>
+        <td>${x.phone
+          ? `<span class="phone">${escapeHtml(x.phone)}</span>`
+          : `<span class="phone empty">—</span>`}</td>
+        <td><span class="chip" style="background:${hexA(catColor,0.13)};color:${catColor};border:1px solid ${hexA(catColor,0.28)}">
+          <i></i>${escapeHtml(catLabel(x.primaryCategory))}</span></td>
+        <td class="num" style="color:#a3b5cf">${fmtDist(x.distance)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* paginação */
+  const pager = $('#pager');
+  const from = rows.length ? start + 1 : 0;
+  const to   = Math.min(start + t.perPage, rows.length);
+
+  let pagesHtml = '';
+  const maxBtns = 5;
+  let pStart = Math.max(1, t.page - 2);
+  let pEnd   = Math.min(totalPages, pStart + maxBtns - 1);
+  if(pEnd - pStart < maxBtns - 1) pStart = Math.max(1, pEnd - maxBtns + 1);
+  for(let i = pStart; i <= pEnd; i++){
+    pagesHtml += `<button class="${i===t.page?'active':''}" data-page="${i}">${i}</button>`;
+  }
+
+  pager.innerHTML = `
+    <span>Mostrando <b style="color:#dbe6f7">${from}–${to}</b> de <b style="color:#dbe6f7">${fmtInt(rows.length)}</b></span>
+    <div style="flex:1"></div>
+    <button data-page="1" ${t.page===1?'disabled':''}>«</button>
+    <button data-page="${t.page-1}" ${t.page===1?'disabled':''}>‹</button>
+    <div class="pages">${pagesHtml}</div>
+    <button data-page="${t.page+1}" ${t.page===totalPages?'disabled':''}>›</button>
+    <button data-page="${totalPages}" ${t.page===totalPages?'disabled':''}>»</button>
+  `;
+
+  $$('#pager button[data-page]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const p = +b.dataset.page;
+      if(p >= 1 && p <= totalPages){
+        state.table.page = p;
+        renderTable();
+        const sc = $('.table-scroll');
+        if(sc) sc.scrollTop = 0;
+      }
+    });
+  });
+
+  /* setas de ordenação */
+  $$('#view-establishments thead th').forEach(th=>{
+    const key = th.dataset.sort;
+    th.classList.toggle('sorted', key === t.sort);
+    const arrow = th.querySelector('.arrow');
+    if(arrow) arrow.textContent = (key === t.sort) ? (t.dir === 1 ? '▲' : '▼') : '▼';
+  });
+}
+
+function hashStr(s){
+  let h = 0;
+  for(let i=0;i<s.length;i++){ h = (h<<5)-h+s.charCodeAt(i); h|=0; }
+  return h;
+}
+function escapeHtml(s){
+  if(s == null) return '';
+  return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+/* =========================================================
+   RENDER — OPORTUNIDADES
+   ========================================================= */
+function renderOpportunities(){
+  const r = state.results;
+  activeCharts = [];
+
+  if(!state.center){
+    $('#oppMeta').innerHTML = '';
+    $('#oppList').innerHTML = emptyState('Nenhuma busca realizada', 'Faça uma busca para carregar as oportunidades.');
+    return;
+  }
+
+  const leads = r.filter(x=>x.phone);
+  const radius = state.query.radius;
+  leads.forEach(l=>{
+    let score = 50;
+    if(l.address1)      score += 10;
+    if(l.address2)      score += 8;
+    if(l.openingHours)  score += 6;
+    score += Math.round(26 * (1 - Math.min(1, l.distance / radius)));
+    l._score = score;
+  });
+  leads.sort((a,b)=>b._score - a._score);
+
+  $('#oppMeta').innerHTML = `<b>${fmtInt(leads.length)} leads contatáveis</b><br>Sem site + com telefone`;
+
+  if(!leads.length){
+    $('#oppList').innerHTML = emptyState('Sem leads contatáveis',
+      'Nenhum estabelecimento sem site possui telefone nesta busca. Tente outra categoria ou amplie o raio.');
+    return;
+  }
+
+  $('#oppList').innerHTML = leads.map((l, i)=>{
+    const catColor = CHART_COLORS[Math.abs(hashStr(l.topCategory)) % CHART_COLORS.length];
+    const phoneClean = (l.phone||'').replace(/\D/g,'');
+    const waLink = phoneClean ? `https://wa.me/55${phoneClean.replace(/^55/,'')}` : '#';
+    return `<div class="lead">
+      <div class="rank">${i+1}</div>
+      <div class="body">
+        <h4>${escapeHtml(l.name)}</h4>
+        <div class="addr">${escapeHtml(l.address1)}${l.address2 ? ' — ' + escapeHtml(l.address2) : ''}</div>
+        <div class="row">
+          <span class="it phone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7 12.8 12.8 0 0 0 .7 2.8 2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4 12.8 12.8 0 0 0 2.8.7 2 2 0 0 1 1.7 2Z"/></svg>
+            ${escapeHtml(l.phone)}
+          </span>
+          <span class="it">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.5-7-12a7 7 0 1 1 14 0c0 5.5-7 12-7 12Z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            ${fmtDist(l.distance)}
+          </span>
+          <span class="it">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 12 22l-9-9V4a1 1 0 0 1 1-1h9l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+            <span style="color:${catColor};font-weight:600">${escapeHtml(catLabel(l.primaryCategory))}</span>
+          </span>
+          ${l.openingHours ? `<span class="it" style="color:#8698b4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 1.9"/></svg>
+            ${escapeHtml(l.openingHours).slice(0,32)}
+          </span>` : ''}
+        </div>
+      </div>
+      <div class="actions">
+        <span class="score">Score ${l._score}</span>
+        ${l.phone && phoneClean ? `<a class="btn ghost" href="${waLink}" target="_blank" rel="noopener" style="text-decoration:none;height:34px;padding:0 12px;font-size:12px">WhatsApp</a>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* =========================================================
+   EMPTY STATES
+   ========================================================= */
+function emptyState(title, sub){
+  return `<div class="empty">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/>
+    </svg>
+    <h3>${title}</h3>
+    <p>${sub}</p>
+  </div>`;
+}
+function emptyMini(title){
+  return `<div class="empty" style="padding:26px 10px"><p style="color:#647a99">${title}</p></div>`;
+}
+
+/* =========================================================
+   SWITCH VIEW
+   ========================================================= */
+function switchView(name, force){
+  state.view = name;
+  $$('.nav-item').forEach(b=>b.classList.toggle('active', b.dataset.view === name));
+  $$('.view').forEach(v=>v.classList.toggle('active', v.id === 'view-' + name));
+
+  requestAnimationFrame(()=>{
+    switch(name){
+      case 'overview':       renderOverview();       break;
+      case 'establishments': renderEstablishments(); break;
+      case 'opportunities':  renderOpportunities();  break;
+    }
+    state._rendered = true;
+  });
+}
+
+/* =========================================================
+   EXPORT CSV
+   ========================================================= */
+function exportCSV(){
+  if(!state.results.length){ showToast('Nenhum dado para exportar.'); return; }
+  const head = ['Nome','Telefone','Endereco','Cidade','Estado','CEP','Categoria','Latitude','Longitude','Distancia_m'];
+  const lines = [head.join(';')];
+  state.results.forEach(x=>{
+    lines.push([
+      x.name, x.phone || '', x.address1 + (x.address2 ? ' - '+x.address2 : ''),
+      x.city, x.state, x.postcode, catLabel(x.primaryCategory),
+      x.lat.toFixed(6), x.lon.toFixed(6), Math.round(x.distance)
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`).join(';'));
+  });
+  const blob = new Blob(['\ufeff' + lines.join('\n')], { type:'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `localleads-${(state.query.location||'busca').replace(/[^a-z0-9]/gi,'_')}-${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast(`<b>${state.results.length}</b> estabelecimentos exportados em CSV.`, 'success');
+}
+
+/* =========================================================
+   SESSÃO INFO
+   ========================================================= */
+function showSessionInfo(){
+  if(!state.authToken){
+    showToast('Sessão não iniciada.');
+    return;
+  }
+  const mins = Math.max(0, Math.round((state.tokenExp - Date.now()) / 60000));
+  showToast(
+    `<b>Sessão segura ativa</b><br>` +
+    `Token HMAC válido por mais ~${mins} min.<br>` +
+    `Todas as consultas passam pelo proxy do servidor — sua API key nunca sai do backend.`,
+    'success'
+  );
+}
+
+/* =========================================================
+   EVENTOS
+   ========================================================= */
+$$('.nav-item').forEach(b=>{
+  b.addEventListener('click', ()=> switchView(b.dataset.view));
+});
+$('#searchBtn').addEventListener('click', runSearch);
+$('#locInput').addEventListener('keydown', e=>{ if(e.key === 'Enter') runSearch(); });
+$('#sessionBtn').addEventListener('click', showSessionInfo);
+$('#exportBtn').addEventListener('click', exportCSV);
+
+/* Filtros da tabela */
+let searchTimer;
+$('#tableSearch').addEventListener('input', e=>{
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(()=>{
+    state.table.q = e.target.value;
+    state.table.page = 1;
+    renderTable();
+  }, 180);
+});
+$('#tableCatFilter').addEventListener('change', e=>{
+  state.table.cat = e.target.value;
+  state.table.page = 1;
+  renderTable();
+});
+$('#tablePhoneFilter').addEventListener('change', e=>{
+  state.table.phone = e.target.value;
+  state.table.page = 1;
+  renderTable();
+});
+$('#perPageSel').addEventListener('change', e=>{
+  state.table.perPage = +e.target.value;
+  state.table.page = 1;
+  renderTable();
+});
+
+/* Ordenação */
+document.addEventListener('click', e=>{
+  const th = e.target.closest('#view-establishments thead th[data-sort]');
+  if(!th) return;
+  const key = th.dataset.sort;
+  if(state.table.sort === key) state.table.dir *= -1;
+  else { state.table.sort = key; state.table.dir = 1; }
+  renderTable();
+});
+
+/* Resize */
+let rzTimer;
+window.addEventListener('resize', ()=>{
+  clearTimeout(rzTimer);
+  rzTimer = setTimeout(()=>{
+    hideTip();
+    activeCharts.forEach(c => c.draw && c.draw());
+  }, 140);
+});
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+(async function boot(){
+  /* Popula select de categorias */
+  const sel = $('#catSelect');
+  CATEGORIES.forEach(group=>{
+    const og = document.createElement('optgroup');
+    og.label = group.g;
+    group.items.forEach(it=>{
+      const o = document.createElement('option');
+      o.value = it.id;
+      o.textContent = it.label;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+  sel.value = 'catering.restaurant';
+
+  /* Render inicial vazio */
+  switchView('overview', true);
+
+  /* Obtém token do servidor */
+  try {
+    await refreshToken();
+    $('#apiStatus').textContent = 'Conectado (proxy seguro)';
+    $('#apiPulse').classList.remove('off');
+
+    /* Renova token a cada 12 min (expira em 15) */
+    setInterval(() => {
+      refreshToken().catch(err => {
+        console.warn('Falha ao renovar token:', err.message);
+      });
+    }, 12 * 60 * 1000);
+
+  } catch (e){
+    console.error(e);
+    $('#apiStatus').textContent = 'Falha ao conectar';
+    $('#apiPulse').classList.add('off');
+    showToast('Não foi possível conectar ao servidor. Recarregue a página.');
+  }
+})();
+</script>
+</body>
+</html>
