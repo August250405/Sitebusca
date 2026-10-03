@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "Proxy seguro para Geoapify com proteção de API key",
   "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "NODE_ENV=development node server.js"
+ "scripts": {
+  "start": "node server.js",
+  "build": "mkdir -p public && cp ./index.html public/"
+},
   },
   "engines": {
     "node": ">=18.0.0"
